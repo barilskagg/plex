@@ -1,25 +1,32 @@
 package org.scalefocus.entities;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 @Table(name = "user")
 @Entity
+@Data
 public class User {
     @Column
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     @NotEmpty
     @Column
     private String userName;
+
     @Size(min = 4, max = 20)
     @NotEmpty
     @Column
     private String password;
+
     @Column
     private Boolean active;
+
     @Column
     private String roles;
 
@@ -54,21 +61,5 @@ public class User {
 
     public boolean isActive() {
         return active;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 }

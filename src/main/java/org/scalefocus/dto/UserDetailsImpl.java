@@ -1,30 +1,31 @@
-package org.scalefocus.services.details;
+package org.scalefocus.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.scalefocus.entities.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PlexUserDetails implements UserDetails {
+public class UserDetailsImpl implements org.springframework.security.core.userdetails.UserDetails {
     private String username;
+    @JsonIgnore
     private String password;
     private boolean active;
     private List<GrantedAuthority> authorities;
 
 
-    public PlexUserDetails() {
+    public UserDetailsImpl() {
     }
 
-    public PlexUserDetails(String username) {
+    public UserDetailsImpl(String username) {
         this.username = username;
     }
 
-    public PlexUserDetails(User user) {
+    public UserDetailsImpl(User user) {
         this.username = user.getUserName();
         this.password = user.getPassword();
         this.active = user.isActive();

@@ -1,5 +1,6 @@
 package org.scalefocus.configuration;
 
+import lombok.AllArgsConstructor;
 import org.scalefocus.filters.JwtRequestFilter;
 import org.scalefocus.services.PlexUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,24 +11,19 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import javax.sql.DataSource;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfLogoutHandler;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
+@AllArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    // JDBC MySQL Authentication:
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Autowired
-    PlexUserDetailService userDetailsService;
-
-    @Autowired
+    private PlexUserDetailService userDetailsService;
     private JwtRequestFilter jwtRequestFilter;
 
     @Override
@@ -35,35 +31,45 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(userDetailsService);
     }
 
-    // Authorization:
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and()
                 .authorizeRequests()
-                .antMatchers("/admins").hasRole("ADMIN")
-                .antMatchers("/users").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/authenticate", "/").permitAll()
+                .antMatchers("/login", "/", "/index").permitAll()
+                .anyRequest().authenticated()
                 .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .logout()
+//                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+//                .logoutUrl("")
+//                .logoutUrl("/logout")
+//                        (logout ->
+//                                logout
+////                                .logoutUrl("/my/logout")
+//                                        .logoutSuccessUrl("/my/index")
+////                                .logoutSuccessHandler(logoutSuccessHandler)
+//                .invalidateHttpSession(true)
+////                                .addLogoutHandler(logoutHandler)
+//                .deleteCookies("jwt", "XSRF-TOKEN")
+//                )
+                .and()
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-    }
-
-//    @Override
-//    public void configure(WebSecurity web) throws Exception {
-//        web.ignoring().antMatchers("/css/**", "/js/**");
-//    }
-
-    @Bean
-    public PasswordEncoder setPasswordEncoder() {
-//        Don't do this in a real app. Here it's set just because Spring Security expects it
-        return NoOpPasswordEncoder.getInstance();
     }
 
     @Override
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

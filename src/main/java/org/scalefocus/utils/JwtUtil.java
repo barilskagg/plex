@@ -14,20 +14,6 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
-//    public static void main(String[] args) {
-//        String jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-//        Claims claims = extractAllClaims(jwt);
-//
-//        System.out.println("Expiration: " + claims.getExpiration());
-//        System.out.println("Subject: " + claims.getSubject());
-//        System.out.println("Audience: " + claims.getAudience());
-//        System.out.println("Id: " + claims.getId());
-//        System.out.println("Issuer: " + claims.getIssuer());
-//        System.out.println("IssuerAt: " + claims.getIssuedAt());
-//
-//
-//    }
-
     private static String SECRET_KEY = "your-256-bit-secret";
 
     public String extractUsername(String token) {
@@ -60,14 +46,19 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+        System.out.println("Here");
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .compact();
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String userName = extractUsername(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        String userName = extractUsername(token);
+        return userName.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
 }
